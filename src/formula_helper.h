@@ -13,18 +13,18 @@ class formula_helper
 // ctor
 public:
 	formula_helper() = default;
-	formula_helper(const T& _v) :value_(_v)
-	{}
-	formula_helper(const T& _v, std::string _name) :value_(_v), name_(_name)
-	{}
+
+	formula_helper(const T& _v)
+		:value_(_v) {}
+
+	formula_helper(const T& _v, std::string _name)
+		:value_(_v), name_(_name) {}
 
 	formula_helper(const T& _v, const std::shared_ptr<formula_helper> _lhs, const std::string _op, const std::shared_ptr<formula_helper>(_rhs))
-		:value_(_v), left_ptr_(_lhs), operator_(_op), right_ptr_(_rhs)
-	{}
+		:value_(_v), left_ptr_(_lhs), operator_(_op), right_ptr_(_rhs) {}
 
-	formula_helper(const T& _v, std::shared_ptr<formula_helper> _lhs, const std::string _op)
-		:value_(_v), left_ptr_(_lhs), operator_(_op)
-	{}
+	formula_helper(const T& _v, const std::shared_ptr<formula_helper> _lhs, const std::string _op)
+		:value_(_v), left_ptr_(_lhs), operator_(_op) {}
 
 
 
@@ -52,6 +52,10 @@ public:
 		return value_;
 	}
 
+	void SetName(const std::string& _name)
+	{
+		name_ = _name;
+	}
 
 
 private:
@@ -86,8 +90,10 @@ protected:
 		else
 		{
 			//uanary
-			if (operator_ =="bracket")
+			if (operator_ == "bracket")
 				temp = "(" + temp + ")";
+			else if (operator_ == "abs")
+				temp = operator_ + "|" + temp + "|";
 			else
 				temp = operator_ + "(" + temp + ")";
 		}
