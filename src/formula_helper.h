@@ -18,29 +18,13 @@ public:
 	formula_helper(const T& _v, std::string _name) :value_(_v), name_(_name)
 	{}
 
-	formula_helper(std::shared_ptr<formula_helper> _lhs, const std::string _op, std::shared_ptr<formula_helper>(_rhs))
-		:left_ptr_(_lhs), operator_(_op), right_ptr_(_rhs)
-	{
-		if (operator_ == "+")
-			value_ = left_ptr_->value_ + right_ptr_->value_;
-		else if (operator_ == "-")
-			value_ = left_ptr_->value_ - right_ptr_->value_;
-		else if (operator_ == "*")
-			value_ = left_ptr_->value_ * right_ptr_->value_;
-		else if (operator_ == "/")
-			value_ = left_ptr_->value_ / right_ptr_->value_;
-		else
-			value_ = left_ptr_->value_;
-	}
+	formula_helper(const T& _v, const std::shared_ptr<formula_helper> _lhs, const std::string _op, const std::shared_ptr<formula_helper>(_rhs))
+		:value_(_v), left_ptr_(_lhs), operator_(_op), right_ptr_(_rhs)
+	{}
 
-	formula_helper(std::shared_ptr<formula_helper> _lhs, const std::string _op)
-		:left_ptr_(_lhs), operator_(_op)
-	{
-		if (operator_ == "abs")
-			value_ = std::abs(left_ptr_->value_);
-		else
-			value_ = left_ptr_->value_;
-	}
+	formula_helper(const T& _v, std::shared_ptr<formula_helper> _lhs, const std::string _op)
+		:value_(_v), left_ptr_(_lhs), operator_(_op)
+	{}
 
 
 
@@ -118,7 +102,7 @@ public:
 #define REGISTE_OPERATOR(OPERATOR) \
 	formula_helper operator OPERATOR (const formula_helper& _rhs) const\
 	{\
-		return formula_helper(std::make_shared<formula_helper>(*this), #OPERATOR , std::make_shared<formula_helper>(_rhs));\
+		return formula_helper(this->GetValue() OPERATOR _rhs.GetValue(), std::make_shared<formula_helper>(*this), #OPERATOR , std::make_shared<formula_helper>(_rhs));\
 	}\
 	formula_helper operator OPERATOR (const float& _rhs) const\
 	{\
@@ -138,12 +122,12 @@ public:
 	// @todo , add unary functions, ex)abs ...
 	formula_helper abs() const
 	{
-		return formula_helper(std::make_shared<formula_helper>(*this), "abs");
+		return formula_helper(std::abs(this->GetValue()),std::make_shared<formula_helper>(*this), "abs");
 	}
 
 	formula_helper bracket() const
 	{
-		return formula_helper(std::make_shared<formula_helper>(*this), "bracket");
+		return formula_helper(this->GetValue(), std::make_shared<formula_helper>(*this), "bracket");
 	}
 
 	formula_helper operator () () const
