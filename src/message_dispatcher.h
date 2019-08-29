@@ -29,7 +29,7 @@ inline bool MessageDispatcher<T_TYPE, T_FUNC, T_ARGS...>::DispatchMessage(T_TYPE
 
 	if (it != message_map_.end())
 	{
-		( *it ).second(_args ...);
+		return ( *it ).second(_args ...);
 	}
 	else
 	{
