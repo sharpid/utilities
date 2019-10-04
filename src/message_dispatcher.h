@@ -24,7 +24,7 @@ inline void MessageDispatcher<T_TYPE, T_RET, T_ARGS...>::RegisterMessage(T_TYPE 
 }
 
 template<typename T_TYPE, typename T_RET, typename ...T_ARGS>
-inline T_RET MessageDispatcher<T_TYPE, T_RET, T_ARGS...>::DispatchMessage(T_TYPE& _type, T_ARGS ... _args) const {
+inline T_RET MessageDispatcher<T_TYPE, T_RET, T_ARGS...>::DispatchMessage(T_TYPE _type, T_ARGS ... _args) const {
 	auto it = message_map_.find(_type);
 
 	if (it != message_map_.end()) {
