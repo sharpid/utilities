@@ -33,9 +33,6 @@ enum class LL : int {
 };
 
 template <typename... Types>
-void ConsoleLog(const LL, const Types&... _args);
-
-template <typename... Types>
 std::string ToString(const Types&... _args);
 
 template <typename Iter>
