@@ -7,8 +7,7 @@ public:
 	using TimepointT = std::chrono::time_point<std::chrono::system_clock>;
 
 	//ctor
-	BaseTimer() :start_point_(std::chrono::system_clock::now())
-	{}
+	BaseTimer() :start_point_(std::chrono::system_clock::now()) {}
 
 public:
 	template<typename T = float>
@@ -74,7 +73,7 @@ public:
 	}
 
 private:
-	TimepointT GetStartPoint() const
+	const TimepointT GetStartPoint() const
 	{
 		return start_point_;
 	}
