@@ -2,14 +2,14 @@
 #include <boost/stacktrace.hpp>
 #include "log_helper.h"
 
-
 //@todo, perfomance check,
 
 namespace SG {
+const uint32_t reserved_buffer_size = 1024;
 template <typename... Types>
 std::string ToString(const Types&... _args) {
 	std::string ret;
-	ret.reserve(256);
+	ret.reserve(reserved_buffer_size);
 	__separate_log_arguments(ret, _args...);
 	return ret;
 }
@@ -43,27 +43,27 @@ class __to_string<T, false, true> {
 };
 
 template <>
-class __to_string<google::protobuf::Message, false, false> {
+class __to_string<google::protobuf::Message>{
    public:
 	std::string operator()(const google::protobuf::Message& _v) { return _v.ShortDebugString(); }
 	std::string operator()(const google::protobuf::Message* _v) { return _v->ShortDebugString(); }
 };
 
 template <>
-class __to_string<std::string, false, false> {
+class __to_string<std::string>{
    public:
 	std::string operator()(const std::string& _v) { return _v; }
 	std::string operator()(const std::string* _v) { return *_v; }
 };
 
 template <>
-class __to_string<const char*, false, false> {
+class __to_string<const char*>{
    public:
 	std::string operator()(const char* const& _v) { return std::string(_v); }
 };
 
 template <>
-class __to_string<std::ostringstream, false, false> {
+class __to_string<std::ostringstream>{
    public:
 	std::string operator()(const std::ostringstream& _v) { return _v.str(); }
 	std::string operator()(const std::ostringstream* _v) { return _v->str(); }
