@@ -4,7 +4,6 @@
 
 //@todo, perfomance check,
 
-namespace SG {
 const uint32_t reserved_buffer_size = 1024;
 template <typename... Types>
 std::string ToString(const Types&... _args) {
@@ -226,4 +225,3 @@ template <size_t N>
 inline void __separate_log_arguments(std::string& _buffer, const char (&_arg)[N]) {
 	_buffer += __to_string<const char*>()(_arg);
 }
-}  // namespace SG
