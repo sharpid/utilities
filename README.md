@@ -1,1 +1,1 @@
-c++ / simple formula helper
+c++ / utilities
