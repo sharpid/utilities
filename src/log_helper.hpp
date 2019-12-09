@@ -1,77 +1,80 @@
-#include <boost/format.hpp>
-#include <boost/stacktrace.hpp>
+#pragma once
 #include "log_helper.h"
 
 //@todo, perfomance check,
 
-const uint32_t reserved_buffer_size = 1024;
+///////////////////////////////////////////////////////////////////////////////
 template <typename... Types>
 std::string ToString(const Types&... _args) {
-	std::string ret;
-	ret.reserve(reserved_buffer_size);
-	__separate_log_arguments(ret, _args...);
-	return ret;
+	StringHelper temp;
+	return temp.ToString(_args...);
 }
 
 template <typename Iter>
 std::string RangeToString(const Iter& _begin, const Iter& _end) {
-	std::string ret;
-	ret += "{";
-	for (auto it = _begin; it != _end;) {
-		ret += __to_string<typename std::iterator_traits<Iter>::value_type>()(*it);
-		if (++it != _end)
-			ret += ",";
-	}
-	ret += "}";
-
-	return ret;
+	StringHelper temp;
+	return temp.RangeToString(_begin, _end);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+template <typename... Types>
+inline std::string StringHelper::ToString(const Types&... _args) {
+	__separate_log_arguments(_args...);
+	return buffer_;
+}
+
+template <typename Iter>
+inline std::string StringHelper::RangeToString(const Iter& _begin, const Iter& _end) {
+	buffer_ += "{";
+	for (auto it = _begin; it != _end;) {
+		buffer_ += __to_string<typename std::iterator_traits<Iter>::value_type>()(*it);
+		if (++it != _end)
+			buffer_ += ",";
+	}
+	buffer_ += "}";
+
+	return buffer_;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class __to_string<T, true, false> {
-   public:
-	std::string operator()(const T& _v) { return std::to_string(_v); }
-	std::string operator()(const T* _v) { return std::to_string(*_v); }
+struct StringHelper::__to_string<T, true, false> {
+	inline std::string operator()(const T& _v) { return std::to_string(_v); }
+	inline std::string operator()(const T* _v) { return operator()(*_v); }
 };
 
 template <typename T>
-class __to_string<T, false, true> {
-   public:
-	std::string operator()(const T& _v) { return _v.ToString(); }
-	std::string operator()(const T* _v) { return _v->ToString(); }
+struct StringHelper::__to_string<T, false, true> {
+	inline std::string operator()(const T& _v) { return _v.ToString(); }
+	inline std::string operator()(const T* _v) { return operator()(*_v); }
 };
 
 template <>
-class __to_string<google::protobuf::Message>{
-   public:
-	std::string operator()(const google::protobuf::Message& _v) { return _v.ShortDebugString(); }
-	std::string operator()(const google::protobuf::Message* _v) { return _v->ShortDebugString(); }
+struct StringHelper::__to_string<google::protobuf::Message> {
+	inline std::string operator()(const google::protobuf::Message& _v) { return _v.ShortDebugString(); }
+	inline std::string operator()(const google::protobuf::Message* _v) { return operator()(*_v); }
 };
 
 template <>
-class __to_string<std::string>{
-   public:
-	std::string operator()(const std::string& _v) { return _v; }
-	std::string operator()(const std::string* _v) { return *_v; }
+struct StringHelper::__to_string<std::string> {
+	inline std::string operator()(const std::string& _v) { return _v; }
+	inline std::string operator()(const std::string* _v) { return operator()(*_v); };
 };
 
 template <>
-class __to_string<const char*>{
-   public:
-	std::string operator()(const char* const& _v) { return std::string(_v); }
+struct StringHelper::__to_string<const char*> {
+	inline std::string operator()(const char* const& _v) { return std::string(_v); }
 };
 
 template <>
-class __to_string<std::ostringstream>{
-   public:
-	std::string operator()(const std::ostringstream& _v) { return _v.str(); }
-	std::string operator()(const std::ostringstream* _v) { return _v->str(); }
+struct StringHelper::__to_string<std::ostringstream> {
+	inline std::string operator()(const std::ostringstream& _v) { return _v.str(); }
+	inline std::string operator()(const std::ostringstream* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::pair<VA...>, false, false> {
-   public:
-	std::string operator()(const std::pair<VA...>& _v) {
+struct StringHelper::__to_string<std::pair<VA...>, false, false> {
+	inline std::string operator()(const std::pair<VA...>& _v) {
 		// std::tuple_size<std::pair<VA...>>
 		std::string ret;
 		ret += "[";
@@ -81,13 +84,12 @@ class __to_string<std::pair<VA...>, false, false> {
 		ret += "]";
 		return ret;
 	}
-	std::string operator()(const std::pair<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::pair<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::tuple<VA...>, false, false> {
-   public:
-	std::string operator()(const std::tuple<VA...>& _v) {
+struct StringHelper::__to_string<std::tuple<VA...>, false, false> {
+	inline std::string operator()(const std::tuple<VA...>& _v) {
 		std::string ret;
 		const auto ts = std::tuple_size<std::tuple<VA...>>::value;
 		ret += "[";
@@ -99,13 +101,12 @@ class __to_string<std::tuple<VA...>, false, false> {
 		ret += "]";
 		return ret;
 	}
-	std::string operator()(const std::tuple<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::tuple<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::vector<VA...>, false, false> {
-   public:
-	std::string operator()(const std::vector<VA...>& _v) {
+struct StringHelper::__to_string<std::vector<VA...>, false, false> {
+	inline std::string operator()(const std::vector<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
@@ -116,13 +117,12 @@ class __to_string<std::vector<VA...>, false, false> {
 		ret += "}";
 		return ret;
 	}
-	std::string operator()(const std::vector<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::vector<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::list<VA...>, false, false> {
-   public:
-	std::string operator()(const std::list<VA...>& _v) {
+struct StringHelper::__to_string<std::list<VA...>, false, false> {
+	inline std::string operator()(const std::list<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
@@ -133,13 +133,12 @@ class __to_string<std::list<VA...>, false, false> {
 		ret += "}";
 		return ret;
 	}
-	std::string operator()(const std::list<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::list<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::set<VA...>, false, false> {
-   public:
-	std::string operator()(const std::set<VA...>& _v) {
+struct StringHelper::__to_string<std::set<VA...>, false, false> {
+	inline std::string operator()(const std::set<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
@@ -150,13 +149,12 @@ class __to_string<std::set<VA...>, false, false> {
 		ret += "}";
 		return ret;
 	}
-	std::string operator()(const std::set<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::set<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::map<VA...>, false, false> {
-   public:
-	std::string operator()(const std::map<VA...>& _v) {
+struct StringHelper::__to_string<std::map<VA...>, false, false> {
+	inline std::string operator()(const std::map<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
@@ -167,13 +165,12 @@ class __to_string<std::map<VA...>, false, false> {
 		ret += "}";
 		return ret;
 	}
-	std::string operator()(const std::map<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::map<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::unordered_set<VA...>, false, false> {
-   public:
-	std::string operator()(const std::unordered_set<VA...>& _v) {
+struct StringHelper::__to_string<std::unordered_set<VA...>, false, false> {
+	inline std::string operator()(const std::unordered_set<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
@@ -184,13 +181,12 @@ class __to_string<std::unordered_set<VA...>, false, false> {
 		ret += "}";
 		return ret;
 	}
-	std::string operator()(const std::unordered_set<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::unordered_set<VA...>* _v) { return operator()(*_v); }
 };
 
 template <typename... VA>
-class __to_string<std::unordered_map<VA...>, false, false> {
-   public:
-	std::string operator()(const std::unordered_map<VA...>& _v) {
+struct StringHelper::__to_string<std::unordered_map<VA...>, false, false> {
+	inline std::string operator()(const std::unordered_map<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
@@ -201,27 +197,28 @@ class __to_string<std::unordered_map<VA...>, false, false> {
 		ret += "}";
 		return ret;
 	}
-	std::string operator()(const std::unordered_map<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::unordered_map<VA...>* _v) { return operator()(*_v); }
 };
 
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename... Types>
-inline void __separate_log_arguments(std::string& _buffer, const T& _arg, const Types&... _args) {
-	_buffer += __to_string<typename std::remove_pointer<T>::type>()(_arg);
-	__separate_log_arguments(_buffer, _args...);
+inline void StringHelper::__separate_log_arguments(const T& _arg, const Types&... _args) {
+	buffer_ += __to_string<typename std::remove_pointer<T>::type>()(_arg);
+	__separate_log_arguments(_args...);
 }
 
 template <typename T>
-inline void __separate_log_arguments(std::string& _buffer, const T& _arg) {
-	_buffer += __to_string<typename std::remove_pointer<T>::type>()(_arg);
+inline void StringHelper::__separate_log_arguments(const T& _arg) {
+	buffer_ += __to_string<typename std::remove_pointer<T>::type>()(_arg);
 }
 
 template <size_t N, typename... Types>
-inline void __separate_log_arguments(std::string& _buffer, const char (&_arg)[N], const Types&... _args) {
-	_buffer += __to_string<const char*>()(_arg);
-	__separate_log_arguments(_buffer, _args...);
+inline void StringHelper::__separate_log_arguments(const char (&_arg)[N], const Types&... _args) {
+	buffer_ += __to_string<const char*>()(_arg);
+	__separate_log_arguments(_args...);
 }
 
 template <size_t N>
-inline void __separate_log_arguments(std::string& _buffer, const char (&_arg)[N]) {
-	_buffer += __to_string<const char*>()(_arg);
+inline void StringHelper::__separate_log_arguments(const char (&_arg)[N]) {
+	buffer_ += __to_string<const char*>()(_arg);
 }
