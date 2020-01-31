@@ -7,7 +7,8 @@ class SimpleRandomGenerator {
 	using engine_type = std::mt19937;
 
    public:
-	SimpleRandomGenerator() : engine_(seed_()) {}
+	SimpleRandomGenerator() : engine_(std::random_device()()) {}
+	//SimpleRandomGenerator() : engine_(std::random_device("/dev/random")()) {}
 
    public:
 	template <typename T>
@@ -18,7 +19,6 @@ class SimpleRandomGenerator {
 	struct __distributor__;
 
    private:
-	std::random_device seed_;
 	engine_type engine_;
 };
 
