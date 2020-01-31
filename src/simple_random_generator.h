@@ -1,11 +1,9 @@
 #pragma once
 // simple static random number generator
-#include <boost/serialization/singleton.hpp>
 #include <random>
 #include <type_traits>
 
-class SimpleRandomGenerator : public boost::serialization::singleton<SimpleRandomGenerator> {
-	friend class boost::serialization::singleton<SimpleRandomGenerator>;
+class SimpleRandomGenerator {
 	using engine_type = std::mt19937;
 
    public:
@@ -53,6 +51,3 @@ inline T SimpleRandomGenerator::Generate(T _min, T _max) {
 
 	return __distributor__<T, engine_type>()(engine_, _min, _max);
 }
-
-#define RAND(MIN, MAX) SimpleRandomGenerator::get_mutable_instance().Generate(MIN, MAX)
-
