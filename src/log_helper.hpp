@@ -93,11 +93,7 @@ struct StringHelper::__to_string<std::tuple<VA...>, false, false> {
 		std::string ret;
 		const auto ts = std::tuple_size<std::tuple<VA...>>::value;
 		ret += "[";
-		for (int i = 0; i < ts;) {
-			ret += __to_string<typename std::tuple_element<0, std::tuple<VA...>>::type>()(std::get<i>(_v));
-			if (++i < ts)
-				ret += ",";
-		}
+		ret += __separate_tuple_arguments<ts-1>()(_v);
 		ret += "]";
 		return ret;
 	}
@@ -198,6 +194,22 @@ struct StringHelper::__to_string<std::unordered_map<VA...>, false, false> {
 		return ret;
 	}
 	inline std::string operator()(const std::unordered_map<VA...>* _v) { return operator()(*_v); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+template <size_t SZ, typename... VA>
+struct StringHelper::__separate_tuple_arguments {
+	std::string operator()(std::tuple<VA...>& t) {
+		return __tuple_decomposer__<SZ - 1>()(t) + "," +
+			   __to_string<typename std::tuple_element<SZ, std::tuple<VA...>>::type>()(std::get<SZ>(t));
+	}
+};
+
+template<typename... VA>
+struct StringHelper::__separate_tuple_arguments<0, VA...> {
+	std::string operator()(std::tuple<VA...>& t) {
+		return __to_string<typename std::tuple_element<0, std::tuple<VA...>>::type>()(std::get<0>(t));
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////

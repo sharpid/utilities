@@ -51,6 +51,11 @@ class StringHelper {
 			  bool = std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value,
 			  typename... VA>
 	struct __to_string;
+	
+	///////////////////////////////////////////////////////////////////////////////
+	// separate tuple arguments
+	template <size_t SZ, typename... VA>
+	struct __separate_tuple_arguments;
 
 	///////////////////////////////////////////////////////////////////////////////
 	// separate arguments
