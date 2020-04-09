@@ -7,7 +7,7 @@
 template <typename... Types>
 std::string ToString(const Types&... _args) {
 	StringHelper temp;
-	return temp.ToString(_args...);
+	return std::move(temp.ToString(_args...));
 }
 
 template <typename Iter>
@@ -38,21 +38,27 @@ inline std::string StringHelper::RangeToString(const Iter& _begin, const Iter& _
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct StringHelper::__to_string<T, true, false> {
+struct StringHelper::__to_string<T, 1> {
 	inline std::string operator()(const T& _v) { return std::to_string(_v); }
 	inline std::string operator()(const T* _v) { return operator()(*_v); }
 };
 
 template <typename T>
-struct StringHelper::__to_string<T, false, true> {
+struct StringHelper::__to_string<T, 2> {
 	inline std::string operator()(const T& _v) { return _v.ToString(); }
 	inline std::string operator()(const T* _v) { return operator()(*_v); }
 };
 
-template <>
-struct StringHelper::__to_string<google::protobuf::Message> {
-	inline std::string operator()(const google::protobuf::Message& _v) { return _v.ShortDebugString(); }
-	inline std::string operator()(const google::protobuf::Message* _v) { return operator()(*_v); }
+template <typename T>
+struct StringHelper::__to_string<T, 3> {
+	inline std::string operator()(const T& _v) { return ::google::protobuf::internal::NameOfEnum( ::google::protobuf::GetEnumDescriptor<T>(), _v); }
+	inline std::string operator()(const T* _v) { return operator()(*_v); }
+};
+
+template <typename T>
+struct StringHelper::__to_string<T, 4> {
+	inline std::string operator()(const T& _v) { return _v.ShortDebugString(); }
+	inline std::string operator()(const T* _v) { return operator()(*_v); }
 };
 
 template <>
@@ -73,7 +79,7 @@ struct StringHelper::__to_string<std::ostringstream> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::pair<VA...>, false, false> {
+struct StringHelper::__to_string<std::pair<VA...>, 0 > {
 	inline std::string operator()(const std::pair<VA...>& _v) {
 		// std::tuple_size<std::pair<VA...>>
 		std::string ret;
@@ -88,12 +94,12 @@ struct StringHelper::__to_string<std::pair<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::tuple<VA...>, false, false> {
+struct StringHelper::__to_string<std::tuple<VA...>, 0 > {
 	inline std::string operator()(const std::tuple<VA...>& _v) {
 		std::string ret;
-		const auto ts = std::tuple_size<std::tuple<VA...>>::value;
 		ret += "[";
-		ret += __separate_tuple_arguments<ts-1>()(_v);
+		const auto ts = std::tuple_size<std::tuple<VA...>>::value;
+		ret += __tuple_decomposer__<ts-1>()(_v);
 		ret += "]";
 		return ret;
 	}
@@ -101,7 +107,7 @@ struct StringHelper::__to_string<std::tuple<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::vector<VA...>, false, false> {
+struct StringHelper::__to_string<std::vector<VA...>, 0 > {
 	inline std::string operator()(const std::vector<VA...>& _v) {
 		std::string ret;
 		ret += "{";
@@ -117,7 +123,7 @@ struct StringHelper::__to_string<std::vector<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::list<VA...>, false, false> {
+struct StringHelper::__to_string<std::list<VA...>, 0 > {
 	inline std::string operator()(const std::list<VA...>& _v) {
 		std::string ret;
 		ret += "{";
@@ -133,7 +139,7 @@ struct StringHelper::__to_string<std::list<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::set<VA...>, false, false> {
+struct StringHelper::__to_string<std::set<VA...>, 0 > {
 	inline std::string operator()(const std::set<VA...>& _v) {
 		std::string ret;
 		ret += "{";
@@ -149,7 +155,7 @@ struct StringHelper::__to_string<std::set<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::map<VA...>, false, false> {
+struct StringHelper::__to_string<std::map<VA...>, 0 > {
 	inline std::string operator()(const std::map<VA...>& _v) {
 		std::string ret;
 		ret += "{";
@@ -165,7 +171,7 @@ struct StringHelper::__to_string<std::map<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::unordered_set<VA...>, false, false> {
+struct StringHelper::__to_string<std::unordered_set<VA...>, 0 > {
 	inline std::string operator()(const std::unordered_set<VA...>& _v) {
 		std::string ret;
 		ret += "{";
@@ -181,7 +187,7 @@ struct StringHelper::__to_string<std::unordered_set<VA...>, false, false> {
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::unordered_map<VA...>, false, false> {
+struct StringHelper::__to_string<std::unordered_map<VA...>, 0 > {
 	inline std::string operator()(const std::unordered_map<VA...>& _v) {
 		std::string ret;
 		ret += "{";
@@ -198,7 +204,7 @@ struct StringHelper::__to_string<std::unordered_map<VA...>, false, false> {
 
 ///////////////////////////////////////////////////////////////////////////////
 template <size_t SZ, typename... VA>
-struct StringHelper::__separate_tuple_arguments {
+struct StringHelper::__tuple_decomposer__ {
 	std::string operator()(std::tuple<VA...>& t) {
 		return __tuple_decomposer__<SZ - 1>()(t) + "," +
 			   __to_string<typename std::tuple_element<SZ, std::tuple<VA...>>::type>()(std::get<SZ>(t));
@@ -206,11 +212,12 @@ struct StringHelper::__separate_tuple_arguments {
 };
 
 template<typename... VA>
-struct StringHelper::__separate_tuple_arguments<0, VA...> {
+struct StringHelper::__tuple_decomposer__<0, VA...> {
 	std::string operator()(std::tuple<VA...>& t) {
 		return __to_string<typename std::tuple_element<0, std::tuple<VA...>>::type>()(std::get<0>(t));
 	}
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename... Types>

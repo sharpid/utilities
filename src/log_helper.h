@@ -1,5 +1,4 @@
 #pragma once
-#include <google/protobuf/message.h>
 #include <list>
 #include <map>
 #include <set>
@@ -9,7 +8,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
-
+#include <google/protobuf/message.h>
 #include "log_interface.h"
 
 #ifdef _USE_PRETTY_FUNCTION_
@@ -46,16 +45,22 @@ class StringHelper {
 
 	///////////////////////////////////////////////////////////////////////////////
 	// to string template functors
-	template <typename T,
-			  bool = std::is_arithmetic<T>::value,
-			  bool = std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value,
-			  typename... VA>
+	template<typename T>
+	constexpr static int GetArgumentType() {
+		return std::is_arithmetic<T>::value ? 1:
+			   std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value ? 2:
+		       google::protobuf::is_proto_enum<typename std::remove_pointer<T>::type>::value ? 3:
+		       std::is_convertible<typename std::add_pointer<T>::type, const ::google::protobuf::Message*>::value ? 4 :
+	        0;
+	};
+
+	template <typename T, int = GetArgumentType<T>()>
 	struct __to_string;
-	
+
 	///////////////////////////////////////////////////////////////////////////////
 	// separate tuple arguments
 	template <size_t SZ, typename... VA>
-	struct __separate_tuple_arguments;
+	struct __tuple_decomposer__;
 
 	///////////////////////////////////////////////////////////////////////////////
 	// separate arguments
