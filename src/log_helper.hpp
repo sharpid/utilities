@@ -40,31 +40,31 @@ inline std::string StringHelper::RangeToString(const Iter& _begin, const Iter& _
 template <typename T>
 struct StringHelper::__to_string<T, 1> {
 	inline std::string operator()(const T& _v) { return std::to_string(_v); }
-	inline std::string operator()(const T* _v) { return operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename T>
 struct StringHelper::__to_string<T, 2> {
 	inline std::string operator()(const T& _v) { return _v.ToString(); }
-	inline std::string operator()(const T* _v) { return operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename T>
 struct StringHelper::__to_string<T, 3> {
 	inline std::string operator()(const T& _v) { return ::google::protobuf::internal::NameOfEnum( ::google::protobuf::GetEnumDescriptor<T>(), _v); }
-	inline std::string operator()(const T* _v) { return operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename T>
 struct StringHelper::__to_string<T, 4> {
 	inline std::string operator()(const T& _v) { return _v.ShortDebugString(); }
-	inline std::string operator()(const T* _v) { return operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <>
 struct StringHelper::__to_string<std::string> {
 	inline std::string operator()(const std::string& _v) { return _v; }
-	inline std::string operator()(const std::string* _v) { return operator()(*_v); };
+	inline std::string operator()(const std::string* _v) { return (!_v) ? "nullptr" : operator()(*_v); };
 };
 
 template <>
@@ -75,7 +75,7 @@ struct StringHelper::__to_string<const char*> {
 template <>
 struct StringHelper::__to_string<std::ostringstream> {
 	inline std::string operator()(const std::ostringstream& _v) { return _v.str(); }
-	inline std::string operator()(const std::ostringstream* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::ostringstream* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -90,7 +90,7 @@ struct StringHelper::__to_string<std::pair<VA...>, 0 > {
 		ret += "]";
 		return ret;
 	}
-	inline std::string operator()(const std::pair<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::pair<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -103,7 +103,7 @@ struct StringHelper::__to_string<std::tuple<VA...>, 0 > {
 		ret += "]";
 		return ret;
 	}
-	inline std::string operator()(const std::tuple<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::tuple<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -119,7 +119,7 @@ struct StringHelper::__to_string<std::vector<VA...>, 0 > {
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::vector<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::vector<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -135,7 +135,7 @@ struct StringHelper::__to_string<std::list<VA...>, 0 > {
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::list<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::list<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -151,7 +151,7 @@ struct StringHelper::__to_string<std::set<VA...>, 0 > {
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::set<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::set<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -167,7 +167,7 @@ struct StringHelper::__to_string<std::map<VA...>, 0 > {
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::map<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::map<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -183,7 +183,7 @@ struct StringHelper::__to_string<std::unordered_set<VA...>, 0 > {
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::unordered_set<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::unordered_set<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 template <typename... VA>
@@ -199,7 +199,7 @@ struct StringHelper::__to_string<std::unordered_map<VA...>, 0 > {
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::unordered_map<VA...>* _v) { return operator()(*_v); }
+	inline std::string operator()(const std::unordered_map<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
