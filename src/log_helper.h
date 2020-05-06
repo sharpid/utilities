@@ -8,8 +8,10 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
-#include <google/protobuf/message.h>
+
+#include "FBMessage.pb.h"
 #include "log_interface.h"
+//#include <google/protobuf/message.h>
 
 #ifdef _USE_PRETTY_FUNCTION_
 #if defined(_MSC_VER)
@@ -45,13 +47,18 @@ class StringHelper {
 
 	///////////////////////////////////////////////////////////////////////////////
 	// to string template functors
-	template<typename T>
+	template <typename T>
 	constexpr static int GetArgumentType() {
-		return std::is_arithmetic<T>::value ? 1:
-			   std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value ? 2:
-		       google::protobuf::is_proto_enum<typename std::remove_pointer<T>::type>::value ? 3:
-		       std::is_convertible<typename std::add_pointer<T>::type, const ::google::protobuf::Message*>::value ? 4 :
-	        0;
+		return std::is_arithmetic<T>::value
+				   ? 1
+				   : std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value
+						 ? 2
+						 : google::protobuf::is_proto_enum<typename std::remove_pointer<T>::type>::value
+							   ? 3
+							   : std::is_convertible<typename std::add_pointer<T>::type,
+													 const ::google::protobuf::Message*>::value
+									 ? 4
+									 : 0;
 	};
 
 	template <typename T, int = GetArgumentType<T>()>

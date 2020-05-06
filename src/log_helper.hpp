@@ -27,7 +27,8 @@ template <typename Iter>
 inline std::string StringHelper::RangeToString(const Iter& _begin, const Iter& _end) {
 	buffer_ += "{";
 	for (auto it = _begin; it != _end;) {
-		buffer_ += __to_string<typename std::iterator_traits<Iter>::value_type>()(*it);
+		buffer_ +=
+			__to_string<typename std::remove_pointer<typename std::iterator_traits<Iter>::value_type>::type>()(*it);
 		if (++it != _end)
 			buffer_ += ",";
 	}
@@ -40,46 +41,48 @@ inline std::string StringHelper::RangeToString(const Iter& _begin, const Iter& _
 template <typename T>
 struct StringHelper::__to_string<T, 1> {
 	inline std::string operator()(const T& _v) { return std::to_string(_v); }
-	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename T>
 struct StringHelper::__to_string<T, 2> {
 	inline std::string operator()(const T& _v) { return _v.ToString(); }
-	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename T>
 struct StringHelper::__to_string<T, 3> {
-	inline std::string operator()(const T& _v) { return ::google::protobuf::internal::NameOfEnum( ::google::protobuf::GetEnumDescriptor<T>(), _v); }
-	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const T& _v) {
+		return ::google::protobuf::internal::NameOfEnum(::google::protobuf::GetEnumDescriptor<T>(), _v);
+	}
+	inline std::string operator()(const T* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename T>
 struct StringHelper::__to_string<T, 4> {
 	inline std::string operator()(const T& _v) { return _v.ShortDebugString(); }
-	inline std::string operator()(const T* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const T* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <>
 struct StringHelper::__to_string<std::string> {
 	inline std::string operator()(const std::string& _v) { return _v; }
-	inline std::string operator()(const std::string* _v) { return (!_v) ? "nullptr" : operator()(*_v); };
+	inline std::string operator()(const std::string* _v) { return (!_v) ? "null" : operator()(*_v); };
 };
 
 template <>
 struct StringHelper::__to_string<const char*> {
-	inline std::string operator()(const char* const& _v) { return std::string(_v); }
+	inline std::string operator()(const char* const& _v) { return (!_v) ? "null" : std::string(_v); }
 };
 
 template <>
 struct StringHelper::__to_string<std::ostringstream> {
 	inline std::string operator()(const std::ostringstream& _v) { return _v.str(); }
-	inline std::string operator()(const std::ostringstream* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::ostringstream* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::pair<VA...>, 0 > {
+struct StringHelper::__to_string<std::pair<VA...>, 0> {
 	inline std::string operator()(const std::pair<VA...>& _v) {
 		// std::tuple_size<std::pair<VA...>>
 		std::string ret;
@@ -90,116 +93,118 @@ struct StringHelper::__to_string<std::pair<VA...>, 0 > {
 		ret += "]";
 		return ret;
 	}
-	inline std::string operator()(const std::pair<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::pair<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::tuple<VA...>, 0 > {
+struct StringHelper::__to_string<std::tuple<VA...>, 0> {
 	inline std::string operator()(const std::tuple<VA...>& _v) {
 		std::string ret;
 		ret += "[";
 		const auto ts = std::tuple_size<std::tuple<VA...>>::value;
-		ret += __tuple_decomposer__<ts-1>()(_v);
+		ret += __tuple_decomposer__<ts - 1>()(_v);
 		ret += "]";
 		return ret;
 	}
-	inline std::string operator()(const std::tuple<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::tuple<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::vector<VA...>, 0 > {
+struct StringHelper::__to_string<std::vector<VA...>, 0> {
 	inline std::string operator()(const std::vector<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
-			ret += __to_string<typename std::vector<VA...>::value_type>()(*it);
+			ret += __to_string<typename std::remove_pointer<typename std::vector<VA...>::value_type>::type>()(*it);
 			if (++it != _v.end())
 				ret += ",";
 		}
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::vector<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::vector<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::list<VA...>, 0 > {
+struct StringHelper::__to_string<std::list<VA...>, 0> {
 	inline std::string operator()(const std::list<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
-			ret += __to_string<typename std::list<VA...>::value_type>()(*it);
+			ret += __to_string<typename std::remove_pointer<typename std::list<VA...>::value_type>::type>()(*it);
 			if (++it != _v.end())
 				ret += ",";
 		}
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::list<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::list<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::set<VA...>, 0 > {
+struct StringHelper::__to_string<std::set<VA...>, 0> {
 	inline std::string operator()(const std::set<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
-			ret += __to_string<typename std::set<VA...>::value_type>()(*it);
+			ret += __to_string<typename std::remove_pointer<typename std::set<VA...>::value_type>::type>()(*it);
 			if (++it != _v.end())
 				ret += ",";
 		}
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::set<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::set<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::map<VA...>, 0 > {
+struct StringHelper::__to_string<std::map<VA...>, 0> {
 	inline std::string operator()(const std::map<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
-			ret += __to_string<typename std::map<VA...>::value_type>()(*it);
+			ret += __to_string<typename std::remove_pointer<typename std::map<VA...>::value_type>::type>()(*it);
 			if (++it != _v.end())
 				ret += ",";
 		}
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::map<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::map<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::unordered_set<VA...>, 0 > {
+struct StringHelper::__to_string<std::unordered_set<VA...>, 0> {
 	inline std::string operator()(const std::unordered_set<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
-			ret += __to_string<typename std::unordered_set<VA...>::value_type>()(*it);
+			ret +=
+				__to_string<typename std::remove_pointer<typename std::unordered_set<VA...>::value_type>::type>()(*it);
 			if (++it != _v.end())
 				ret += ",";
 		}
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::unordered_set<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::unordered_set<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 template <typename... VA>
-struct StringHelper::__to_string<std::unordered_map<VA...>, 0 > {
+struct StringHelper::__to_string<std::unordered_map<VA...>, 0> {
 	inline std::string operator()(const std::unordered_map<VA...>& _v) {
 		std::string ret;
 		ret += "{";
 		for (auto it = _v.begin(); it != _v.end();) {
-			ret += __to_string<typename std::unordered_map<VA...>::value_type>()(*it);
+			ret +=
+				__to_string<typename std::remove_pointer<typename std::unordered_map<VA...>::value_type>::type>()(*it);
 			if (++it != _v.end())
 				ret += ",";
 		}
 		ret += "}";
 		return ret;
 	}
-	inline std::string operator()(const std::unordered_map<VA...>* _v) { return (!_v) ? "nullptr" : operator()(*_v); }
+	inline std::string operator()(const std::unordered_map<VA...>* _v) { return (!_v) ? "null" : operator()(*_v); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -207,17 +212,18 @@ template <size_t SZ, typename... VA>
 struct StringHelper::__tuple_decomposer__ {
 	std::string operator()(std::tuple<VA...>& t) {
 		return __tuple_decomposer__<SZ - 1>()(t) + "," +
-			   __to_string<typename std::tuple_element<SZ, std::tuple<VA...>>::type>()(std::get<SZ>(t));
+			   __to_string<typename std::remove_pointer<typename std::tuple_element<SZ, std::tuple<VA...>>::type>::type>()(
+				   std::get<SZ>(t));
 	}
 };
 
-template<typename... VA>
+template <typename... VA>
 struct StringHelper::__tuple_decomposer__<0, VA...> {
 	std::string operator()(std::tuple<VA...>& t) {
-		return __to_string<typename std::tuple_element<0, std::tuple<VA...>>::type>()(std::get<0>(t));
+		return __to_string<typename std::remove_pointer<typename std::tuple_element<0, std::tuple<VA...>>::type>>::type()(
+			std::get<0>(t));
 	}
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename... Types>
