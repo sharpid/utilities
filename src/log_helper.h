@@ -6,6 +6,7 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -23,6 +24,24 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// check container type,
+template <typename T, typename _ = void>
+struct is_container : std::false_type {};
+
+template <typename... T>
+struct is_container_helper {};
+
+// SFINAE
+template <typename T>
+struct is_container<T,
+					typename std::conditional<true,
+											  void,
+											  is_container_helper<typename T::iterator,
+																  decltype(std::declval<T>().begin()),
+																  decltype(std::declval<T>().end())> >::type>
+	: public std::true_type {};
+
+///////////////////////////////////////////////////////////////////////////////
 // extern func
 template <typename... Types>
 std::string ToString(const Types&... _args);
@@ -31,6 +50,16 @@ template <typename Iter>
 std::string RangeToString(const Iter&, const Iter&);
 
 class StringHelper {
+   public:
+	enum ARG_TYPE {
+		NONE = 0,  // not specialized
+		ARITHMETIC,
+		GOOGLE_PROTO_MESSAGE,
+		GOOGLE_PROTO_ENUM,
+		STL_CONTAINER,
+		USER_LOG_INTERFACE,
+	};
+
    public:
 	StringHelper() { buffer_.reserve(reserve_buffer_size_); };
 
@@ -48,20 +77,22 @@ class StringHelper {
 	///////////////////////////////////////////////////////////////////////////////
 	// to string template functors
 	template <typename T>
-	constexpr static int GetArgumentType() {
+	constexpr static ARG_TYPE GetArgumentType() {
 		return std::is_arithmetic<T>::value
-				   ? 1
-				   : std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value
-						 ? 2
-						 : google::protobuf::is_proto_enum<typename std::remove_pointer<T>::type>::value
-							   ? 3
-							   : std::is_convertible<typename std::add_pointer<T>::type,
-													 const ::google::protobuf::Message*>::value
-									 ? 4
-									 : 0;
+				   ? ARG_TYPE::ARITHMETIC
+				   : is_container<T>::value
+						 ? ARG_TYPE::STL_CONTAINER
+						 : std::is_base_of<LogInterface, typename std::remove_pointer<T>::type>::value
+							   ? ARG_TYPE::USER_LOG_INTERFACE
+							   : google::protobuf::is_proto_enum<typename std::remove_pointer<T>::type>::value
+									 ? ARG_TYPE::GOOGLE_PROTO_ENUM
+									 : std::is_convertible<typename std::add_pointer<T>::type,
+														   const ::google::protobuf::Message*>::value
+										   ? ARG_TYPE::GOOGLE_PROTO_MESSAGE
+										   : ARG_TYPE::NONE;
 	};
 
-	template <typename T, int = GetArgumentType<T>()>
+	template <typename T, ARG_TYPE = GetArgumentType<T>()>
 	struct __to_string;
 
 	///////////////////////////////////////////////////////////////////////////////
