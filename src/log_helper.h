@@ -9,10 +9,9 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
+#include <google/protobuf/message.h>
 
-#include "FBMessage.pb.h"
 #include "log_interface.h"
-//#include <google/protobuf/message.h>
 
 #ifdef _USE_PRETTY_FUNCTION_
 #if defined(_MSC_VER)
