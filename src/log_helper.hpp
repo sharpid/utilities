@@ -121,8 +121,8 @@ struct StringHelper::__to_string<std::tuple<VA...>, StringHelper::ARG_TYPE::NONE
 	inline std::string operator()(const std::tuple<VA...>& _v) {
 		std::string ret;
 		ret += "[";
-		const auto ts = std::tuple_size<std::tuple<VA...>>::value;
-		ret += __tuple_decomposer__<ts - 1>()(_v);
+		const auto ts = std::tuple_size<const std::tuple<VA...>>::value - 1;
+		ret += __tuple_decomposer__<ts,VA...>()(_v);
 		ret += "]";
 		return ret;
 	}
@@ -131,19 +131,17 @@ struct StringHelper::__to_string<std::tuple<VA...>, StringHelper::ARG_TYPE::NONE
 
 template <size_t SZ, typename... VA>
 struct StringHelper::__tuple_decomposer__ {
-	std::string operator()(std::tuple<VA...>& t) {
-		return __tuple_decomposer__<SZ - 1>()(t) + "," +
-			   __to_string<
-				   typename std::remove_pointer<typename std::tuple_element<SZ, std::tuple<VA...>>::type>::type>()(
-				   std::get<SZ>(t));
+	std::string operator()(const std::tuple<VA...>& t) {
+		using current_type = typename std::remove_pointer<typename std::tuple_element<SZ, const std::tuple<VA...>>::type>::type;
+		return __tuple_decomposer__<SZ - 1, VA...>()(t) + "," + __to_string<current_type>()(std::get<SZ>(t));
 	}
 };
 
 template <typename... VA>
 struct StringHelper::__tuple_decomposer__<0, VA...> {
-	std::string operator()(std::tuple<VA...>& t) {
-		return __to_string<typename std::remove_pointer<typename std::tuple_element<0, std::tuple<VA...>>::type>>::
-			type()(std::get<0>(t));
+	std::string operator()(const std::tuple<VA...>& t) {
+		using current_type = typename std::remove_pointer<typename std::tuple_element<0, const std::tuple<VA...>>::type>::type;
+		return __to_string<current_type>()(std::get<0>(t));
 	}
 };
 
