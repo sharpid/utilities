@@ -1,24 +1,11 @@
 #pragma once
 #include "log_helper.h"
-
-//@todo, perfomance check,
-
-///////////////////////////////////////////////////////////////////////////////
-template <typename... Types>
-std::string ToString(const Types&... _args) {
-  StringHelper temp;
-  return temp.ToString(_args...);
-}
-
-template <typename Iter>
-std::string RangeToString(const Iter& _begin, const Iter& _end) {
-  StringHelper temp;
-  return temp.RangeToString(_begin, _end);
-}
+#include <sstream>
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename... Types>
 inline std::string StringHelper::ToString(const Types&... _args) {
+  buffer_->clear();
   __separate_log_arguments(_args...);
   return *buffer_;
 }
@@ -26,6 +13,7 @@ inline std::string StringHelper::ToString(const Types&... _args) {
 template <typename Iter>
 inline std::string StringHelper::RangeToString(const Iter& _begin,
                                                const Iter& _end) {
+  buffer_->clear();
   *buffer_ += "[";
   for (auto it = _begin; it != _end;) {
     *buffer_ += __to_string<typename std::remove_pointer<

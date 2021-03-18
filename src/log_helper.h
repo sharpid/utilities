@@ -1,28 +1,24 @@
 #pragma once
-#include <list>
-#include <map>
-#include <set>
-#include <sstream>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <typeinfo>
-#include <unordered_map>
-#include <unordered_set>
 #include <memory>
 
 #ifdef _USE_GOOGLE_PROTOBUF_
 #include <google/protobuf/message.h>
 #endif  //_USE_GOOGLE_PROTOBUF_
+
 #include "log_interface.h"
 
 #ifdef _USE_PRETTY_FUNCTION_
-#if defined(_MSC_VER)
-#define __PRETTY_FUNCTION__ __FUNCSIG__
-#endif
-#define __FUNCTION_OUT__ __PRETTY_FUNCTION__
+  #if defined(_MSC_VER)
+    #define __FUNCTION_OUT__ __FUNCSIG__
+  #else
+    #define __FUNCTION_OUT__ __PRETTY_FUNCTION__
+  #endif
 #else
-#define __FUNCTION_OUT__ __func__
+  #define __FUNCTION_OUT__ __func__
 #endif
 
 template <typename... T>
@@ -71,12 +67,6 @@ struct has_snake_tostring<
     : public std::true_type {};
 
 ///////////////////////////////////////////////////////////////////////////////
-// extern func
-template <typename... Types>
-std::string ToString(const Types&... _args);
-
-template <typename Iter>
-std::string RangeToString(const Iter&, const Iter&);
 
 class StringHelper {
  public:
